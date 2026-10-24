@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07080A">
+<meta name="color-scheme" content="dark">
+<title>Aria Showroom 3D · concept non ufficiale</title>
+<meta name="description" content="Concept dimostrativo non ufficiale: auto elettriche in 3D, configuratore visivo e un assistente AI con risposte predefinite. Non affiliato a Tesla, Inc.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/space-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{ "imports": { "three": "./lib/three/three.module.min.js", "three/addons/": "./lib/three/addons/" } }
+</script>
+</head>
+<body>
+<a class="skip" href="#modelli">Salta ai modelli</a>
+
+<canvas id="scene" role="img" aria-label="Modello 3D dell'auto. Trascina in orizzontale per ruotarlo, doppio tocco per tornare alla vista iniziale."></canvas>
+<div id="fallback" class="fallback" hidden>
+  <p class="fb-msg">La vista 3D non è disponibile su questo dispositivo. Ecco le immagini.</p>
+  <div class="fb-gallery" id="fbGallery"></div>
+</div>
+
+<div id="loader" class="loader" aria-live="polite">
+  <div class="ld-ring"></div>
+  <p><span id="ldText">Preparo l'auto…</span> <span id="ldPct" class="mono">0%</span></p>
+</div>
+
+<header class="topbar glass">
+  <a href="#hero" class="brand" aria-label="Aria Showroom 3D, torna all'inizio"><span class="brand-dot"></span><span>ARIA SHOWROOM <b>3D</b></span></a>
+  <nav class="nav" aria-label="Sezioni">
+    <a href="#modelli">Modelli</a><a href="#configura">Configura</a><a href="#confronta">Confronta</a><a href="#aria" data-open-ai><span>Chiedi ad <span class="ai-name">Aria</span></span></a>
+  </nav>
+</header>
+
+<nav class="chapters" aria-label="Capitoli" id="chapters"></nav>
+
+<main id="main">
+  <section id="hero" class="sec hero" data-car="model3" data-cam="hero">
+    <div class="disclaimer-top glass-soft" role="note">Concept non ufficiale, non affiliato a Tesla, Inc. · <a href="#crediti">Crediti</a></div>
+    <div class="hero-copy">
+      <p class="eyebrow">Progetto dimostrativo non ufficiale</p>
+      <h1>Entra nello showroom.<br><span class="dim">Senza uscire di casa.</span></h1>
+      <p class="lead">Gira intorno a ogni modello in 3D, cambia colore e cerchi, confronta i dati. È una demo: qui non si compra niente.</p>
+    </div>
+    <div class="dragzone" aria-hidden="true"><span class="hint" id="dragHint">Trascina per ruotare</span></div>
+    <div class="hero-cta">
+      <a class="btn primary" href="#modelli">Esplora i modelli</a>
+      <button class="btn ghost" data-open-ai><span>Chiedi ad <span class="ai-name">Aria</span></span></button>
+    </div>
+  </section>
+
+  <div id="modelli" class="anchor"></div>
+  <!-- capitoli dei modelli generati da app.js -->
+  <div id="chaptersHost"></div>
+
+  <section id="configura" class="sec config" data-car="current" data-cam="config">
+    <div class="sec-head">
+      <p class="eyebrow">Configuratore visivo</p>
+      <h2>Fallo tuo, almeno sullo schermo.</h2>
+    </div>
+    <div class="dragzone" aria-hidden="true"></div>
+    <div class="drawer glass" id="drawer">
+      <div class="drawer-grip" aria-hidden="true"></div>
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="car">Modello</button>
+        <button role="tab" aria-selected="false" data-tab="paint">Colore</button>
+        <button role="tab" aria-selected="false" data-tab="rims">Cerchi</button>
+        <button role="tab" aria-selected="false" data-tab="view">Vista</button>
+      </div>
+      <div class="tabpanel" data-panel="car"><div class="chips" id="carPick"></div></div>
+      <div class="tabpanel" data-panel="paint" hidden><div class="swatches" id="paintPick"></div></div>
+      <div class="tabpanel" data-panel="rims" hidden><div class="swatches" id="rimPick"></div></div>
+      <div class="tabpanel" data-panel="view" hidden>
+        <div class="chips">
+          <button class="chip" id="xrayBtn" aria-pressed="false">Raggi X</button>
+          <button class="chip" data-view="front">Frontale</button>
+          <button class="chip" data-view="side">Laterale</button>
+          <button class="chip" data-view="rear">Posteriore</button>
+          <button class="chip" data-view="top">Dall'alto</button>
+          <button class="chip" id="zoomIn" aria-label="Avvicina">Zoom +</button>
+          <button class="chip" id="zoomOut" aria-label="Allontana">Zoom −</button>
+        </div>
+      </div>
+      <div class="summary">
+        <p class="sum-title">La tua configurazione</p>
+        <p class="sum-line" id="sumLine" aria-live="polite"></p>
+        <p class="note">Questa è una simulazione. Per configurare e ordinare davvero: <a href="https://www.tesla.com/it_it" target="_blank" rel="noopener">tesla.com</a>. Colori indicativi.</p>
+        <div class="row">
+          <button class="btn small" id="saveCfg">Salva la configurazione</button>
+          <button class="btn small ghost" id="shareCfg">Condividi la configurazione</button>
+          <a class="btn small ghost" href="#confronta">Confrontalo con un altro</a>
+        </div>
+        <p class="toast" id="toast" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="confronta" class="sec compare" data-car="current" data-cam="compare">
+    <div class="glass panel">
+      <p class="eyebrow">Confronto</p>
+      <h2>Mettili uno accanto all'altro.</h2>
+      <p class="lead small">Solo dati con fonte e data. Dove manca la fonte scriviamo «dato mancante».</p>
+      <div class="tablewrap"><table id="cmpTable"></table></div>
+      <p class="note" id="cmpSource"></p>
+      <div class="row"><button class="btn small ghost" data-ask="Quali sono le differenze tra i modelli?"><span>Chiedi ad <span class="ai-name">Aria</span> le differenze</span></button></div>
+    </div>
+  </section>
+
+  <section id="aria" class="sec ai" data-car="current" data-cam="ai">
+    <div class="glass panel">
+      <p class="eyebrow"><span class="ai-display">Aria, assistente del concept</span> · Assistente AI</p>
+      <h2>Hai un dubbio? Chiedilo ad <span class="ai-name">Aria</span>.</h2>
+      <p class="lead small">Un assistente AI dimostrativo con risposte predefinite: spiega il sito, muove la scena e ripete i dati di questa pagina con la fonte. Può sbagliare: per decisioni vere controlla il sito ufficiale. Niente esce dal tuo browser.</p>
+      <div class="chips" id="aiSecChips"></div>
+      <div class="row"><button class="btn primary" data-open-ai><span>Chiedi ad <span class="ai-name">Aria</span></span></button></div>
+    </div>
+  </section>
+
+  <footer class="sec footer" id="footer" data-car="current" data-cam="footer">
+    <div class="glass panel">
+      <h2>Hai fatto il giro dello showroom.</h2>
+      <div class="row"><a class="btn ghost" href="#hero">Ricomincia il tour</a></div>
+      <p class="disclaimer"><b>Concept non ufficiale, non affiliato a Tesla, Inc.</b> Concept non ufficiale a scopo dimostrativo. Non affiliato, sponsorizzato o approvato da Tesla, Inc. Tesla e i nomi dei modelli sono marchi dei rispettivi titolari. Per informazioni e acquisti: <a href="https://www.tesla.com/it_it" target="_blank" rel="noopener">tesla.com</a>.</p>
+      <p class="note" id="dataNote"></p>
+      <h3 id="crediti">Crediti</h3>
+      <ul class="credits" id="creditsList"></ul>
+      <p class="note">Codice: three.js (MIT). Font: Space Grotesk, Inter, JetBrains Mono (SIL OFL 1.1). Illuminazione: HDRI «Studio Small 09» di Poly Haven (CC0). Dettagli e testi delle licenze in <a href="CREDITS.md">CREDITS.md</a>.</p>
+      <p class="note">Privacy: il sito salva solo la configurazione nel tuo browser (localStorage), se premi «Salva». Non raccogliamo dati, niente cookie, analytics o richieste a server esterni. Il sito è ospitato su GitHub Pages: GitHub può registrare dati tecnici delle visite, come l'indirizzo IP, secondo la sua <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">privacy policy</a>.</p>
+      <div class="row"><button class="btn small ghost" id="wipeBtn">Cancella i dati salvati</button><button class="btn small ghost" id="liteBtn" aria-pressed="false">Vista leggera</button></div>
+    </div>
+  </footer>
+</main>
+
+<!-- Assistente -->
+<button class="orb-btn" id="orbBtn" aria-label="Apri la chat con Aria, assistente del concept (assistente AI)" aria-expanded="false" aria-controls="chat">
+  <canvas id="orb" width="160" height="160" aria-hidden="true"></canvas>
+  <span class="orb-label"><span class="ai-name">Aria</span> <span class="badge">Assistente AI</span></span>
+</button>
+
+<div class="chat glass" id="chat" role="dialog" aria-modal="true" aria-labelledby="chatTitle" hidden>
+  <div class="chat-head">
+    <canvas id="orbBig" width="160" height="160" aria-hidden="true"></canvas>
+    <div class="chat-title"><p id="chatTitle"><span class="ai-display">Aria, assistente del concept</span> <span class="badge">Assistente AI</span></p><p class="tiny" id="aiState">Assistente con risposte predefinite</p></div>
+    <button class="icon-btn" id="ttsBtn" aria-pressed="false" aria-label="Leggi le risposte ad alta voce" title="Voce">🔈</button>
+    <button class="icon-btn" id="chatClose" aria-label="Chiudi la chat">✕</button>
+  </div>
+  <div class="msgs" id="msgs" aria-live="polite"></div>
+  <div class="chips scroll" id="quickChips"></div>
+  <form class="chat-form" id="chatForm" autocomplete="off">
+    <button type="button" class="icon-btn" id="micBtn" aria-label="Detta la domanda" hidden>🎙</button>
+    <input id="chatInput" type="text" inputmode="text" enterkeyhint="send" placeholder="Scrivi una domanda sui modelli…" aria-label="Domanda per Aria" maxlength="200">
+    <button class="btn small primary" type="submit">Invia</button>
+  </form>
+  <p class="tiny chat-foot">È un'IA dimostrativa e può sbagliare. Non è un servizio Tesla. Non scrivere dati personali.</p>
+</div>
+
+<noscript><p class="noscript">Questo concept 3D richiede JavaScript. Concept non ufficiale, non affiliato a Tesla, Inc.</p></noscript>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

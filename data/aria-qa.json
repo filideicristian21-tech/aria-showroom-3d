@@ -1,0 +1,357 @@
+[
+ {
+  "id": "q01",
+  "categoria": "sito",
+  "domanda": "Che sito è questo?",
+  "varianti": [
+   "è il sito ufficiale?",
+   "siete Tesla?",
+   "è un negozio?",
+   "posso comprare qui?"
+  ],
+  "risposta": "Questo è un concept non ufficiale a scopo dimostrativo: uno showroom 3D da esplorare, non un negozio. Non è affiliato, sponsorizzato o approvato da Tesla, Inc. Qui non si vende e non si prenota niente. Per informazioni e acquisti c'è tesla.com/it_it.",
+  "fonte": "https://www.tesla.com/it_it",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q02",
+  "categoria": "assistente",
+  "domanda": "Chi sei?",
+  "varianti": [
+   "sei una persona?",
+   "che IA sei?",
+   "che modello usi?",
+   "lavori per Tesla?"
+  ],
+  "risposta": "Sono Aria, un'assistente AI con risposte predefinite di un sito concept non ufficiale. Non sono un servizio Tesla e non parlo a nome di Tesla. Posso sbagliare: per i dati aggiornati controlla tesla.com/it_it.",
+  "fonte": "https://www.tesla.com/it_it",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q03",
+  "categoria": "autonomia",
+  "domanda": "Quanta autonomia ha la Model 3?",
+  "varianti": [
+   "autonomia model 3",
+   "quanti km fa la model 3",
+   "model 3 km wltp"
+  ],
+  "risposta": "Secondo Tesla, autonomia WLTP della Model 3: 572 km (trazione posteriore); 750 km con cerchi da 18\" e 691 km con cerchi da 19\" (Premium a trazione posteriore); 660 km (Premium Dual Motor a trazione integrale); 600 km (Performance). L'autonomia reale cambia con velocità, temperatura, meteo, strada e stile di guida. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/model3",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q04",
+  "categoria": "autonomia",
+  "domanda": "Quanta autonomia ha la Model Y?",
+  "varianti": [
+   "autonomia model y",
+   "quanti km fa la model y",
+   "model y km wltp"
+  ],
+  "risposta": "Secondo Tesla, autonomia WLTP della Model Y: 525 km (trazione posteriore); 603 km (Premium a trazione posteriore); 622 km (Premium Dual Motor a trazione integrale); 580 km (Performance). L'autonomia reale cambia con velocità, temperatura, meteo, strada e stile di guida. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/modely",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q05",
+  "categoria": "autonomia",
+  "domanda": "Quanta autonomia ha la Model S?",
+  "varianti": [
+   "autonomia model s",
+   "model s plaid km",
+   "quanti km fa la model s"
+  ],
+  "risposta": "Secondo Tesla, autonomia WLTP della Model S: 744 km (Dual Motor) e 611 km (Plaid). L'autonomia reale cambia con velocità, temperatura, meteo, strada e stile di guida. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/models",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q06",
+  "categoria": "autonomia",
+  "domanda": "Quanta autonomia ha la Model X?",
+  "varianti": [
+   "autonomia model x",
+   "model x plaid km",
+   "quanti km fa la model x"
+  ],
+  "risposta": "Per la Model X la pagina Tesla Italia indica l'autonomia come «stima» e non come valore WLTP, quindi qui non riporto numeri. Il dato aggiornato è su tesla.com/it_it/modelx. In generale l'autonomia reale cambia con velocità, temperatura, meteo e stile di guida.",
+  "fonte": "https://www.tesla.com/it_it/modelx",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q07",
+  "categoria": "autonomia",
+  "domanda": "Perché l'autonomia reale è diversa da quella dichiarata?",
+  "varianti": [
+   "cos'è il wltp",
+   "in inverno fa meno km?",
+   "autonomia reale",
+   "quanto fa davvero"
+  ],
+  "risposta": "Il WLTP è uno standard di omologazione utile per confrontare le auto elettriche tra loro. Su strada i km possono essere diversi: secondo Tesla incidono stile di guida, meteo e condizioni della strada, variazioni di altitudine e il normale degrado della batteria con l'uso. Anche freddo e velocità alte riducono l'autonomia.",
+  "fonte": "https://www.tesla.com/it_it/model3",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q08",
+  "categoria": "ricarica",
+  "domanda": "Cos'è un Supercharger?",
+  "varianti": [
+   "supercharger",
+   "ricarica veloce",
+   "colonnine tesla",
+   "potenza massima ricarica"
+  ],
+  "risposta": "È la rete di ricarica rapida in corrente continua (DC) di Tesla: secondo Tesla, oltre 80.000 Supercharger nel mondo. La potenza massima accettata dipende dalla versione: secondo Tesla fino a 175 kW per Model 3 e Model Y a trazione posteriore di base, fino a 250 kW per le altre versioni di Model 3 e Model Y e per Model S e Model X. Il pagamento è a consumo (Pay Per Use). Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/supercharger",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q09",
+  "categoria": "ricarica",
+  "domanda": "Quanto ricarica la Model 3 in 15 minuti al Supercharger?",
+  "varianti": [
+   "ricarica model 3",
+   "model 3 15 minuti",
+   "tempo ricarica model 3"
+  ],
+  "risposta": "Secondo Tesla, in 15 minuti al Supercharger la Model 3 aggiunge fino a: 286 km (trazione posteriore), 311 km (Premium a trazione posteriore), 275 km (Premium a trazione integrale), 243 km (Performance). Tesla precisa che il dato si basa su una velocità costante; il risultato reale dipende da stato di carica, temperatura della batteria, tipo di colonnina e meteo. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/model3",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q10",
+  "categoria": "ricarica",
+  "domanda": "Quanto ricarica la Model Y in 15 minuti al Supercharger?",
+  "varianti": [
+   "ricarica model y",
+   "model y 15 minuti",
+   "tempo ricarica model y"
+  ],
+  "risposta": "Secondo Tesla, in 15 minuti al Supercharger la Model Y aggiunge fino a: 254 km (trazione posteriore), 257 km (Premium a trazione posteriore), 267 km (Premium a trazione integrale), 243 km (Performance). Tesla precisa che il dato si basa su una velocità costante; il risultato reale dipende da stato di carica, temperatura della batteria, tipo di colonnina e meteo. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/modely",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q11",
+  "categoria": "ricarica",
+  "domanda": "Quanto ricaricano Model S e Model X in 15 minuti?",
+  "varianti": [
+   "ricarica model s",
+   "ricarica model x",
+   "model s 15 minuti",
+   "model x 15 minuti"
+  ],
+  "risposta": "Secondo Tesla, in 15 minuti al Supercharger si aggiungono fino a 330 km sulla Model S e fino a 267 km sulla Model X. Tesla precisa che il dato si basa su una velocità autostradale costante di 100 km/h e che il risultato reale varia con tipo di Supercharger, configurazione, stato di carica, temperatura della batteria e meteo. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/models",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q12",
+  "categoria": "ricarica",
+  "domanda": "Si può ricaricare a casa?",
+  "varianti": [
+   "ricarica domestica",
+   "wall connector",
+   "presa di casa",
+   "ricarica AC",
+   "differenza AC DC"
+  ],
+  "risposta": "Sì. A casa si ricarica in corrente alternata (AC), più lenta della corrente continua (DC) dei Supercharger. Secondo Tesla, il Wall Connector funziona a 230 V monofase o 400 V trifase, con potenza in uscita da 7,4 a 22 kW e corrente massima di 32 A; è compatibile con Model S, 3, X, Y e con le auto elettriche con presa di tipo 2. La potenza reale dipende dall'impianto di casa e da quanta potenza AC accetta l'auto. Per l'installazione serve un elettricista o un installatore certificato. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/home-charging",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q13",
+  "categoria": "fuori_perimetro",
+  "domanda": "Posso ordinare o finanziare un'auto qui?",
+  "varianti": [
+   "ordinare",
+   "consegna",
+   "tempi di consegna",
+   "finanziamento",
+   "leasing",
+   "rata",
+   "incentivi",
+   "permuta",
+   "assicurazione"
+  ],
+  "risposta": "Qui no: è un concept dimostrativo e non prendo ordini, non do date di consegna e non do consigli su finanziamenti, incentivi, assicurazioni o fisco. Per questo serve tesla.com o un centro Tesla.",
+  "fonte": "https://www.tesla.com/it_it",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q14",
+  "categoria": "differenze",
+  "domanda": "Che differenza c'è tra Model 3 e Model Y?",
+  "varianti": [
+   "model 3 o model y",
+   "berlina o suv",
+   "quale scegliere tra 3 e y",
+   "model 3 vs model y"
+  ],
+  "risposta": "Secondo Tesla, la Model 3 è una berlina sportiva e la Model Y un SUV di medie dimensioni. Due dati: capacità di carico 682 litri sulla Model 3; fino a 2.138 litri sulla Model Y (2.118 litri sulla versione a trazione posteriore). La Model Y ha fino a 7 posti, ma solo sulla Premium a trazione integrale con configurazione a sette posti; la Model 3 ha 5 posti. La scelta dipende da spazio, uso e gusti: non c'è una risposta giusta per tutti. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/modely",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q15",
+  "categoria": "differenze",
+  "domanda": "Che differenza c'è tra Model S e Model X?",
+  "varianti": [
+   "model s o model x",
+   "model s vs model x",
+   "porte falcon",
+   "quale tra s e x"
+  ],
+  "risposta": "Secondo Tesla, la Model S è una berlina di lusso e la Model X un SUV di lusso con portiere posteriori Falcon Wing. Capacità di carico: 799 litri sulla Model S, 2.675 litri sulla Model X. La Model X ha fino a 7 posti (Dual Motor) o fino a 6 (Plaid) e una capacità di traino di 2.300 kg (Dual Motor) o 2.250 kg (Plaid). Entrambe esistono in versione Dual Motor e Plaid (Tri Motor). Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/modelx",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q16",
+  "categoria": "differenze",
+  "domanda": "Quali versioni ci sono della Model 3?",
+  "varianti": [
+   "versioni model 3",
+   "model 3 performance",
+   "model 3 premium",
+   "0-100 model 3"
+  ],
+  "risposta": "Sulla pagina Tesla Italia: Model 3 a trazione posteriore (0-100 km/h in 6,2 s), Model 3 Premium a trazione posteriore (5,2 s), Model 3 Premium Dual Motor a trazione integrale (4,0 s) e Model 3 Performance (3,1 s, con sottrazione del rollout). L'autonomia di ogni versione è nella risposta sull'autonomia della Model 3. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/model3",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q17",
+  "categoria": "differenze",
+  "domanda": "Quali versioni ci sono della Model Y?",
+  "varianti": [
+   "versioni model y",
+   "model y performance",
+   "model y premium",
+   "0-100 model y"
+  ],
+  "risposta": "Sulla pagina Tesla Italia: Model Y a trazione posteriore (0-100 km/h in 7,2 s), Model Y Premium a trazione posteriore (5,6 s), Model Y Premium Dual Motor a trazione integrale (4,6 s) e Model Y Performance (3,5 s, con sottrazione del rollout). L'autonomia di ogni versione è nella risposta sull'autonomia della Model Y. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/modely",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q18",
+  "categoria": "assistenza_guida",
+  "domanda": "Cos'è l'Autopilot?",
+  "varianti": [
+   "autopilot",
+   "guida da sola?",
+   "cruise control adattivo",
+   "autosterzatura",
+   "posso togliere le mani dal volante?"
+  ],
+  "risposta": "Secondo Tesla, l'Autopilot è un sistema di assistenza alla guida di serie sulle Tesla nuove: comprende Cruise Control adattivo e Sistema di Autosterzatura. Non rende l'auto autonoma. Va usato con un conducente attento, con le mani sul volante e pronto a intervenire in ogni momento: la responsabilità resta di chi guida. Le funzioni disponibili dipendono dal mercato e dalle norme locali. Dettagli e avvertenze sono nel Manuale d'uso e manutenzione.",
+  "fonte": "https://www.tesla.com/it_it/support/autopilot",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q19",
+  "categoria": "assistenza_guida",
+  "domanda": "C'è la guida autonoma in Italia?",
+  "varianti": [
+   "full self-driving",
+   "fsd",
+   "guida autonoma completa",
+   "guida autonoma supervisionata",
+   "tesla assisted driving"
+  ],
+  "risposta": "No: le funzioni disponibili oggi richiedono la supervisione attiva del conducente e non rendono l'auto autonoma. Sulle pagine Tesla Italia, la funzione avanzata si chiama «Tesla Assisted Driving» e Tesla scrive che non è ancora disponibile in Italia: potrebbe esserlo in futuro, ma dipende dallo sviluppo e dall'approvazione delle autorità. Il pacchetto «Tesla Assisted Driving Basic» è comunque assistenza alla guida, sempre sotto la tua supervisione. Non posso promettere date né funzioni future.",
+  "fonte": "https://www.tesla.com/it_it/support/autopilot",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q20",
+  "categoria": "colori",
+  "domanda": "Che colori ha la Model 3?",
+  "varianti": [
+   "colori model 3",
+   "vernice model 3",
+   "model 3 nera",
+   "model 3 bianca"
+  ],
+  "risposta": "Nel configuratore Tesla Italia, per la Model 3 a trazione posteriore risultano: Bianco Perla Micalizzato (di serie), Nero diamante e Grigio Stealth. Le versioni superiori possono avere altri colori. In questo concept puoi provarli sul modello 3D: i colori a schermo sono indicativi. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/model3/design",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q21",
+  "categoria": "colori",
+  "domanda": "Che colori ha la Model Y?",
+  "varianti": [
+   "colori model y",
+   "vernice model y",
+   "blu costiero",
+   "colori model s",
+   "colori model x"
+  ],
+  "risposta": "Nel configuratore Tesla Italia, per la Model Y a trazione posteriore risultano: Grigio Stealth (di serie), Nero diamante, Bianco Perla Micalizzato e Blu costiero. Le altre versioni, e Model S e Model X, possono avere colori diversi: li trovi nel configuratore su tesla.com/it_it. In questo concept i colori a schermo sono indicativi. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/modely/design",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q22",
+  "categoria": "prova_su_strada",
+  "domanda": "Posso fare un test drive?",
+  "varianti": [
+   "prova su strada",
+   "prenotare un test drive",
+   "provare l'auto",
+   "prenota prova"
+  ],
+  "risposta": "Da qui no: questo concept non prenota test drive e non raccoglie dati. Puoi richiederlo su tesla.com/it_it/drive o in un centro Tesla; secondo Tesla la disponibilità varia in base alla zona.",
+  "fonte": "https://www.tesla.com/it_it/drive",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q23",
+  "categoria": "prezzi",
+  "domanda": "Quanto costa?",
+  "varianti": [
+   "prezzo",
+   "quanto costa la model 3",
+   "quanto costa la model y",
+   "listino",
+   "sconti",
+   "offerte"
+  ],
+  "risposta": "Questo concept non mostra prezzi: cambiano spesso e un dato vecchio sarebbe fuorviante. I prezzi aggiornati sono su tesla.com/it_it.",
+  "fonte": "https://www.tesla.com/it_it",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q24",
+  "categoria": "garanzia",
+  "domanda": "Che garanzia hanno?",
+  "varianti": [
+   "garanzia",
+   "garanzia batteria",
+   "quanto dura la batteria",
+   "garanzia motore"
+  ],
+  "risposta": "Secondo Tesla: veicolo base 4 anni o 80.000 km, al primo dei due. Batteria e unità motrice 8 anni con un limite di km che dipende dal modello: 160.000 km per Model 3 e Model Y a trazione posteriore di base, 192.000 km per le altre versioni di Model 3 e Model Y, 240.000 km per Model S e Model X. Tesla scrive: «È garantito almeno il 70% di conservazione della capacità della batteria oltre il periodo di garanzia». Valgono termini e condizioni ufficiali. Fonte: tesla.com, consultato il 24/10/2026. Valore indicativo, può essere cambiato.",
+  "fonte": "https://www.tesla.com/it_it/model3",
+  "dato_aggiornato_al": "2026-10-24"
+ },
+ {
+  "id": "q25",
+  "categoria": "modelli",
+  "domanda": "C'è il Cybertruck?",
+  "varianti": [
+   "cybertruck",
+   "pick-up tesla",
+   "cyberbeast",
+   "si può comprare il cybertruck in italia"
+  ],
+  "risposta": "Sagoma 3D generica. La pagina del Cybertruck su tesla.com/it_it riporta specifiche per gli USA, quindi qui non do numeri. Per sapere se e come è disponibile in Italia, controlla tesla.com/it_it.",
+  "fonte": "https://www.tesla.com/it_it/cybertruck",
+  "dato_aggiornato_al": "2026-10-24"
+ }
+]

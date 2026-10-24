@@ -1,0 +1,108 @@
+{
+ "_note": "Solo dati letti su tesla.com/it_it il 24/10/2026 (fonte: tesla-lumen.md, VERDE Guard). Nessun arrotondamento. null = dato mancante. Ricontrollare prima del push. Velocità massima: da tesla-scout.md (pagine design e scheda), 24/10/2026.",
+ "consulted": "24/10/2026",
+ "rows": [
+  {
+   "key": "range",
+   "label": "Autonomia WLTP"
+  },
+  {
+   "key": "accel",
+   "label": "0-100 km/h"
+  },
+  {
+   "key": "vmax",
+   "label": "Velocità massima"
+  },
+  {
+   "key": "seats",
+   "label": "Posti"
+  },
+  {
+   "key": "cargo",
+   "label": "Capacità di carico"
+  },
+  {
+   "key": "dc",
+   "label": "Ricarica Supercharger max"
+  },
+  {
+   "key": "add15",
+   "label": "Km aggiunti in 15 min (Supercharger)"
+  }
+ ],
+ "cars": {
+  "model3": {
+   "url": "https://www.tesla.com/it_it/model3",
+   "bar": [
+    {
+     "label": "Autonomia WLTP",
+     "value": "572 km",
+     "sub": "trazione posteriore"
+    },
+    {
+     "label": "0-100 km/h",
+     "value": "6,2 s",
+     "sub": "trazione posteriore"
+    },
+    {
+     "label": "Carico",
+     "value": "682 l",
+     "sub": "capacità di carico"
+    }
+   ],
+   "values": {
+    "range": "572 km (trazione posteriore); 750 km con cerchi da 18\" e 691 km con cerchi da 19\" (Premium a trazione posteriore); 660 km (Premium Dual Motor); 600 km (Performance)",
+    "accel": "6,2 s (trazione posteriore); 5,2 s (Premium RWD); 4,0 s (Premium Dual Motor); 3,1 s (Performance, con sottrazione del rollout)",
+    "seats": "5",
+    "cargo": "682 litri",
+    "dc": "fino a 175 kW (trazione posteriore di base); fino a 250 kW (altre versioni)",
+    "add15": "fino a 286 km (trazione posteriore); 311 km (Premium RWD); 275 km (Premium AWD); 243 km (Performance)",
+    "vmax": "201 km/h (trazione posteriore); 262 km/h (Performance); altre versioni: dato mancante"
+   }
+  },
+  "modely": {
+   "url": "https://www.tesla.com/it_it/modely",
+   "bar": [
+    {
+     "label": "Autonomia WLTP",
+     "value": "525 km",
+     "sub": "trazione posteriore"
+    },
+    {
+     "label": "0-100 km/h",
+     "value": "7,2 s",
+     "sub": "trazione posteriore"
+    },
+    {
+     "label": "Carico",
+     "value": "2.138 l",
+     "sub": "carico massimo"
+    }
+   ],
+   "values": {
+    "range": "525 km (trazione posteriore); 603 km (Premium RWD); 622 km (Premium Dual Motor); 580 km (Performance)",
+    "accel": "7,2 s (trazione posteriore); 5,6 s (Premium RWD); 4,6 s (Premium Dual Motor); 3,5 s (Performance, con sottrazione del rollout)",
+    "seats": "5; fino a 7 solo su Premium AWD a sette posti",
+    "cargo": "fino a 2.138 litri (2.118 litri trazione posteriore)",
+    "dc": "fino a 175 kW (trazione posteriore di base); fino a 250 kW (altre versioni)",
+    "add15": "fino a 254 km (trazione posteriore); 257 km (Premium RWD); 267 km (Premium AWD); 243 km (Performance)",
+    "vmax": "201 km/h (trazione posteriore); 250 km/h (Performance); altre versioni: dato mancante"
+   }
+  },
+  "cybertruck": {
+   "url": "https://www.tesla.com/it_it/cybertruck",
+   "usSpecsOnly": true,
+   "note": "La pagina tesla.com/it_it mostra «Sono mostrate le specifiche per gli USA», quindi qui non riportiamo numeri.",
+   "values": {
+    "range": null,
+    "accel": null,
+    "vmax": null,
+    "seats": null,
+    "cargo": null,
+    "dc": null,
+    "add15": null
+   }
+  }
+ }
+}
