@@ -1,5 +1,5 @@
 // Service worker di Boby: app installabile e utilizzabile anche con rete scarsa.
-const V = 'boby-v2';
+const V = 'boby-v3';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest'];
 const TILES = 'boby-tiles-v1';
 
