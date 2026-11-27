@@ -1,6 +1,6 @@
 // Service worker di Boby: app installabile e utilizzabile anche con rete scarsa.
-const V = 'boby-v2';
-const SHELL = ['./', 'index.html', 'css/app.css', 'js/app.js', 'js/style.js', 'js/services.js', 'js/voice.js',
+const V = 'boby-v3';
+const SHELL = ['./', 'index.html', 'css/app.css', 'js/app.js', 'js/style.js', 'js/services.js', 'js/voice.js', 'js/brain.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
 const TILES = 'boby-tiles-v1';
 

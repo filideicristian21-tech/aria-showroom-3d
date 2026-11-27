@@ -1,6 +1,7 @@
 import { buildStyle, C } from './style.js';
 import * as S from './services.js';
-import { Boby, parseCommand, voiceSupported } from './voice.js';
+import { Boby, parseCommand, voiceSupported, isYes, isNo } from './voice.js';
+import { Brain } from './brain.js';
 
 const $ = (id) => document.getElementById(id);
 const store = {
@@ -24,6 +25,14 @@ const st = {
   rerouting: false,
   sim: null,
   wakeLock: null,
+  pending: null,    // domanda di Boby in attesa di sì/no
+  limit: null,      // limite di velocità della strada
+  limitCheck: { at: 0, pos: null },
+  overSince: 0,
+  warnedLimit: 0,
+  driveStart: 0,
+  breakWarned: false,
+  address: '',
 };
 
 // ---------------- mappa ----------------
@@ -127,6 +136,7 @@ const ui = {
 };
 
 async function say(text, opts) {
+  if (!text) return;
   ui.bubble(text, 'boby', Math.max(4000, text.length * 80));
   await boby.say(text, opts);
 }
@@ -155,33 +165,96 @@ function chime() {
   } catch (e) {}
 }
 
+// ---------------- cervello: comandi locali + Claude ----------------
+const LOCAL_FAST = new Set(['cancel', 'eta', 'repeat', 'time', 'mute', 'unmute', 'zoomin', 'zoomout', 'center', 'simulate', 'limit', 'avoid', 'sethome', 'setwork']);
+
 async function handle(text) {
+  // Risposta a una domanda di Boby (es. "vuoi che cerchi parcheggio?")
+  if (st.pending) {
+    const p = st.pending; st.pending = null;
+    if (isYes(text)) return run(p.yes);
+    if (isNo(text)) return say(p.noText || 'Va bene.');
+  }
   const c = parseCommand(text);
   try {
-    switch (c.intent) {
-      case 'go': return await goTo(c.dest, { near: c.near });
-      case 'home': return await goSaved('home', 'casa');
-      case 'work': return await goSaved('work', 'lavoro');
-      case 'cancel': if (st.route) { endNav(); return say('Navigazione terminata.'); } return say('Non stiamo navigando verso nessuna destinazione.');
-      case 'eta': return st.route ? say(etaPhrase()) : say('Dimmi prima dove vuoi andare.');
-      case 'repeat': return st.route ? say(currentInstructionPhrase()) : say('Non c\'è nessuna indicazione da ripetere.');
-      case 'time': return say('Sono le ' + S.clock(new Date()) + '.');
-      case 'sethome': store.set('home', { coord: st.pos, name: 'Casa' }); return say('Fatto, ho salvato questa posizione come casa.');
-      case 'setwork': store.set('work', { coord: st.pos, name: 'Lavoro' }); return say('Fatto, ho salvato questa posizione come lavoro.');
-      case 'mute': setMuted(true); ui.bubble('Voce disattivata. Di\' «Hey Boby, riattiva la voce».'); return;
-      case 'unmute': setMuted(false); return say('Eccomi, voce riattivata.');
-      case 'zoomin': map.zoomIn(); return boby.setState('idle');
-      case 'zoomout': map.zoomOut(); return boby.setState('idle');
-      case 'center': recenter(); return boby.setState('idle');
-      case 'simulate': if (st.route) { startSim(); return say('Avvio la simulazione del percorso.'); } return say('Prima scegli una destinazione, poi posso simulare il viaggio.');
-      case 'help': return say('Puoi dirmi: portami in via Roma, portami al benzinaio più vicino, portami a casa, quanto manca, ripeti, oppure termina navigazione.');
-      case 'hello': return say('Ciao! Dove andiamo?');
-      default: return say('Non ho capito dove vuoi andare. Prova con: portami a, seguito dal posto.');
+    if (brain.enabled && !LOCAL_FAST.has(c.intent)) {
+      ui.bubble('Ci penso…', 'boby', 0);
+      try {
+        const reply = await brain.ask(text, contextLine());
+        return say(reply, { expectReply: /\?\s*$/.test(reply) });
+      } catch (e) {
+        if (e.kind === 'auth') { ui.toast('Chiave Claude non valida: controlla le impostazioni.', 6000); }
+        // rete assente o servizio occupato: continuo con i comandi locali
+      }
     }
+    return await local(c);
   } catch (err) {
     console.error(err);
     say(navigator.onLine ? 'Non riesco a raggiungere il servizio di mappe. Riprova tra poco.' : 'Sei offline: mi serve internet per calcolare il percorso.');
   }
+}
+
+async function local(c) {
+  switch (c.intent) {
+    case 'go': return goTo(c.dest, { near: c.near });
+    case 'home': return goSaved('home', 'casa');
+    case 'work': return goSaved('work', 'lavoro');
+    case 'stop': return c.dest ? addStop(c.dest).then((r) => say(r.say)) : say('Dove vuoi fare tappa?', { expectReply: true });
+    case 'cancel': if (st.route) { endNav(); return say('Navigazione terminata.'); } return say('Non stiamo navigando verso nessuna destinazione.');
+    case 'eta': return st.route ? say(etaPhrase()) : say('Dimmi prima dove vuoi andare.');
+    case 'repeat': return st.route ? say(currentInstructionPhrase()) : say('Non c\'è nessuna indicazione da ripetere.');
+    case 'time': return say('Sono le ' + S.clock(new Date()) + '.');
+    case 'sethome': store.set('home', { coord: st.pos, name: 'Casa' }); return say('Fatto, ho salvato questa posizione come casa.');
+    case 'setwork': store.set('work', { coord: st.pos, name: 'Lavoro' }); return say('Fatto, ho salvato questa posizione come lavoro.');
+    case 'mute': setMuted(true); ui.bubble('Voce disattivata. Di\' «Hey Boby, riattiva la voce».'); return;
+    case 'unmute': setMuted(false); return say('Eccomi, voce riattivata.');
+    case 'zoomin': map.zoomIn(); return boby.setState('idle');
+    case 'zoomout': map.zoomOut(); return boby.setState('idle');
+    case 'center': recenter(); return boby.setState('idle');
+    case 'simulate': if (st.route) { startSim(); return say('Avvio la simulazione del percorso.'); } return say('Prima scegli una destinazione, poi posso simulare il viaggio.');
+    case 'avoid': {
+      const o = store.get('opts', {});
+      if (c.toll) o.avoidTolls = true; if (c.motorway) o.avoidMotorways = true;
+      store.set('opts', o);
+      if (st.route) await reroute(true);
+      return say(`Ok, evito ${[c.toll && 'i pedaggi', c.motorway && 'le autostrade'].filter(Boolean).join(' e ')}.`);
+    }
+    case 'weather': {
+      const where = c.dest && st.route ? st.route.dest : st.pos;
+      const w = await S.weather(where);
+      return say(`${c.dest && st.route ? 'A destinazione' : 'Qui'} ${Math.abs(w.temp) === 1 ? (w.temp < 0 ? 'c\'è meno un grado' : 'c\'è un grado') : `ci sono ${w.temp} gradi`}, ${w.desc}.`);
+    }
+    case 'limit': return say(st.limit ? `Il limite qui è ${st.limit} chilometri orari.` : 'Non conosco il limite di questa strada.');
+    case 'help': return say('Puoi dirmi: portami in via Roma, fai una tappa al benzinaio, evita le autostrade, che tempo fa a destinazione, quanto manca, oppure termina navigazione.');
+    case 'hello': return say('Ciao! Dove andiamo?', { expectReply: true });
+    default: return say('Non ho capito dove vuoi andare. Prova con: portami a, seguito dal posto.');
+  }
+}
+
+function contextLine() {
+  const d = new Date();
+  const parts = [`ora ${S.clock(d)}`, `${d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}`, `velocità ${Math.round(st.speed * 3.6)} km/h`];
+  if (st.address) parts.push(`posizione: ${st.address}`);
+  if (st.route) parts.push(`in navigazione verso ${st.route.destName}, mancano ${S.fmtDur(remaining().time)}`);
+  const saved = Object.keys(store.get('places', {})).concat(['home', 'work'].filter((k) => store.get(k)).map((k) => (k === 'home' ? 'casa' : 'lavoro')));
+  if (saved.length) parts.push(`luoghi salvati: ${saved.join(', ')}`);
+  const rec = store.get('recent', []).slice(0, 5).map((r) => r.name);
+  if (rec.length) parts.push(`destinazioni recenti: ${rec.join(', ')}`);
+  return parts.join('; ');
+}
+
+// Trova un luogo: salvato, categoria "più vicino" o ricerca libera
+async function resolvePlace(query, { nearest = false, near = st.pos } = {}) {
+  const q = query.trim().toLowerCase();
+  if (/^(casa|a casa|casa mia)$/.test(q) && store.get('home')) return [{ ...store.get('home'), name: 'Casa' }];
+  if (/^(lavoro|ufficio)$/.test(q) && store.get('work')) return [{ ...store.get('work'), name: 'Lavoro' }];
+  const places = store.get('places', {});
+  if (places[q]) return [places[q]];
+  const cat = S.matchCategory(q);
+  if (cat && (nearest || q.split(' ').length <= 2)) {
+    try { const items = await S.nearest(cat, near); if (items.length) return items.slice(0, 5); } catch (e) {}
+  }
+  return S.searchPlaces(query, near);
 }
 
 async function goSaved(key, label) {
@@ -191,25 +264,73 @@ async function goSaved(key, label) {
 }
 
 async function goTo(dest, { near } = {}) {
-  const cat = S.matchCategory(dest);
-  if (cat && (near || dest.split(' ').length <= 2)) {
-    ui.bubble(`Cerco ${cat.label.toLowerCase()} qui vicino…`, 'boby', 0);
-    let items = [];
-    try { items = await S.nearest(cat, st.pos); } catch (e) { /* ricado sulla ricerca testuale */ }
-    if (!items.length) items = await S.searchPlaces(dest, st.pos);
-    if (!items.length) return say(`Non trovo ${cat.label.toLowerCase()} nei dintorni.`);
-    const p = items[0];
-    return startNav(p.coord, p.name, `${cat.label} più vicino: ${p.name}.`);
-  }
   ui.bubble(`Cerco «${dest}»…`, 'boby', 0);
-  const res = await S.searchPlaces(dest, st.pos);
-  if (!res.length) return say(`Non ho trovato «${dest}». Puoi ripetere con il nome della città?`);
+  const res = await resolvePlace(dest, { nearest: near });
+  if (!res.length) return say(`Non ho trovato «${dest}». Puoi ripetere con il nome della città?`, { expectReply: true });
   const p = res[0];
   return startNav(p.coord, p.name, `Ti porto a ${p.name}${p.where ? ', ' + p.where.split(',')[0] : ''}.`);
 }
 
+// Tappa: sceglie il posto che allunga meno il viaggio tra i più vicini al percorso
+async function addStop(query) {
+  if (!st.route) { await goTo(query, { near: true }); return { say: '', ok: true }; }
+  const r = st.route;
+  const ahead = r.coords.slice(Math.max(0, r.coords.findIndex((_, i) => r.cum[i] >= st.along)));
+  const probe = ahead[Math.min(ahead.length - 1, Math.floor(ahead.length * 0.25))] || st.pos;
+  let cands = [];
+  for (const near of [st.pos, probe]) { try { cands = cands.concat(await resolvePlace(query, { nearest: true, near })); } catch (e) {} }
+  if (!cands.length) return { say: `Non trovo ${query} lungo il percorso.`, ok: false };
+  const detour = (c) => S.haversine(st.pos, c.coord) + S.haversine(c.coord, r.dest) - S.haversine(st.pos, r.dest);
+  cands.sort((a, b) => detour(a) - detour(b));
+  const p = cands[0];
+  const before = remaining().time;
+  await startNav(r.dest, r.destName, null, { via: [{ coord: p.coord, name: p.name }] });
+  const extra = Math.max(0, Math.round((st.route.duration - before) / 60));
+  return { ok: true, stop: p.name, extra_minutes: extra, say: `Ho aggiunto la tappa ${p.name}${extra ? `, ${extra} minuti in più` : ''}.` };
+}
+
+// Azioni che Claude può usare
+const brain = new Brain(() => store.get('claudeKey', ''), {
+  async find_places({ query, near }) {
+    const at = near === 'destination' && st.route ? st.route.dest : st.pos;
+    const res = await resolvePlace(query, { near: at });
+    return res.slice(0, 5).map((p) => ({ name: p.name, where: p.where, km: +(S.haversine(st.pos, p.coord) / 1000).toFixed(1) }));
+  },
+  async navigate_to({ query, nearest }) {
+    const res = await resolvePlace(query, { nearest });
+    if (!res.length) return { ok: false, error: 'nessun risultato' };
+    const p = res[0];
+    await startNav(p.coord, p.name, null);
+    const left = remaining();
+    return { ok: true, destination: p.name, where: p.where, minutes: Math.round(left.time / 60), km: +(left.dist / 1000).toFixed(1), arrival: S.clock(new Date(Date.now() + left.time * 1000)) };
+  },
+  async add_stop({ query }) { const r = await addStop(query); delete r.say; return r; },
+  async trip_status() {
+    const base = { speed_kmh: Math.round(st.speed * 3.6), speed_limit: st.limit, position: st.address || null };
+    if (!st.route) return { ...base, navigating: false };
+    const left = remaining();
+    return { ...base, navigating: true, destination: st.route.destName, stops: st.route.via.map((v) => v.name), minutes_left: Math.round(left.time / 60), km_left: +(left.dist / 1000).toFixed(1), arrival: S.clock(new Date(Date.now() + left.time * 1000)), next: currentInstructionPhrase() };
+  },
+  async stop_navigation() { if (st.route) endNav(); return { ok: true }; },
+  async weather({ where }) { const w = await S.weather(where === 'destination' && st.route ? st.route.dest : st.pos); return w; },
+  async save_place({ label, address }) {
+    let p = { coord: st.pos, name: label };
+    if (address) { const r = await S.searchPlaces(address, st.pos); if (!r.length) return { ok: false, error: 'indirizzo non trovato' }; p = { coord: r[0].coord, name: label, where: r[0].name }; }
+    const k = label.toLowerCase();
+    if (k === 'casa') store.set('home', p); else if (k === 'lavoro' || k === 'ufficio') store.set('work', p);
+    else { const pl = store.get('places', {}); pl[k] = p; store.set('places', pl); }
+    return { ok: true };
+  },
+  async route_options({ avoid_tolls, avoid_motorways }) {
+    store.set('opts', { avoidTolls: avoid_tolls, avoidMotorways: avoid_motorways });
+    if (st.route) await reroute(true);
+    return { ok: true };
+  },
+  async voice_settings({ muted }) { setMuted(muted); return { ok: true }; },
+});
+
 // ---------------- navigazione ----------------
-function prepareRoute(r, dest, destName) {
+function prepareRoute(r, dest, destName, via = []) {
   const cum = [0];
   for (let i = 1; i < r.coords.length; i++) cum.push(cum[i - 1] + S.haversine(r.coords[i - 1], r.coords[i]));
   const total = cum[cum.length - 1] || 1;
@@ -217,19 +338,44 @@ function prepareRoute(r, dest, destName) {
   // posizione lungo la linea in cui avviene ogni manovra (inizio di ogni step)
   const stepAt = []; let acc = 0;
   for (const s of r.steps) { stepAt.push(acc * ratio); acc += s.distance; }
-  return { ...r, cum, total, stepAt, dest, destName, avgSpeed: r.distance / Math.max(r.duration, 1) };
+  return { ...r, cum, total, stepAt, dest, destName, via, avgSpeed: r.distance / Math.max(r.duration, 1) };
 }
 
-async function startNav(dest, destName, intro) {
-  stopSim();
-  const r = await S.route(st.pos, dest);
-  st.route = prepareRoute(r, dest, destName);
-  st.along = 0; st.stepIdx = 0; st.spoken = {}; st.offCount = 0;
+function routeOpts() {
+  const o = store.get('opts', {});
+  return [o.avoidTolls && 'toll', o.avoidMotorways && 'motorway'].filter(Boolean);
+}
+
+const stopMarkers = [];
+function drawRoute(r) {
   map.getSource('route')?.setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: r.coords }, properties: {} });
-  destMarker.setLngLat(dest).addTo(map);
+  destMarker.setLngLat(r.dest).addTo(map);
+  stopMarkers.splice(0).forEach((m) => m.remove());
+  r.via.forEach((v) => {
+    const el = document.createElement('div'); el.className = 'stopdot'; el.title = v.name;
+    stopMarkers.push(new maplibregl.Marker({ element: el }).setLngLat(v.coord).addTo(map));
+  });
+}
+
+function remember(dest, name) {
+  if (!name || name === 'Casa' || name === 'Lavoro') return;
+  const rec = store.get('recent', []).filter((r) => r.name !== name);
+  rec.unshift({ coord: dest, name, at: Date.now() });
+  store.set('recent', rec.slice(0, 8));
+}
+
+async function startNav(dest, destName, intro, { via = [] } = {}) {
+  stopSim();
+  const r = await S.route(st.pos, dest, { via: via.map((v) => v.coord), exclude: routeOpts() });
+  const wasNavigating = !!st.route;
+  st.route = prepareRoute(r, dest, destName, via);
+  st.along = 0; st.stepIdx = 0; st.spoken = {}; st.offCount = 0; st.parkingAsked = false;
+  if (!st.driveStart) st.driveStart = Date.now();
+  drawRoute(st.route);
   document.body.classList.add('navigating');
   $('top').hidden = true; $('maneuver').hidden = false; $('trip').hidden = false; $('speed').hidden = false;
   closeSheet();
+  remember(dest, destName);
 
   // panoramica animata, poi la camera si aggancia all'auto
   const b = r.coords.reduce((bb, c) => bb.extend(c), new maplibregl.LngLatBounds(r.coords[0], r.coords[0]));
@@ -240,16 +386,23 @@ async function startNav(dest, destName, intro) {
 
   update();
   requestWakeLock();
+  if (intro === null) { st.spoken[1 + ':far'] = true; return; } // annuncia il cervello (Claude)
+  // meteo a destinazione: lo dico solo se serve (pioggia, neve, freddo)
+  let meteo = '';
+  if (!wasNavigating && r.distance > 3000) {
+    try { const w = await S.weather(dest); if (w.wet || w.temp <= 2) meteo = ` A destinazione: ${w.desc}, ${w.temp} gradi${w.wet ? ', guida con prudenza' : ''}.`; } catch (e) {}
+  }
   const first = st.route.steps[1] ? ` ${S.instruction(st.route.steps[1])} tra ${S.speakDist(st.route.stepAt[1])}.` : '';
-  await say(`${intro} ${S.speakDur(r.duration)}, arrivo previsto alle ${S.clock(new Date(Date.now() + r.duration * 1000))}.${first}`);
+  await say(`${intro} ${S.speakDur(r.duration)}, arrivo previsto alle ${S.clock(new Date(Date.now() + r.duration * 1000))}.${meteo}${first}`);
   st.spoken[1 + ':far'] = true;
 }
 
 function endNav() {
   stopSim();
-  st.route = null;
+  st.route = null; st.pending = null; st.driveStart = 0; st.breakWarned = false;
   map.getSource('route')?.setData(emptyLine());
   destMarker.remove();
+  stopMarkers.splice(0).forEach((m) => m.remove());
   document.body.classList.remove('navigating');
   $('top').hidden = false; $('maneuver').hidden = true; $('trip').hidden = true; $('speed').hidden = true;
   st.wakeLock?.release?.().catch(() => {}); st.wakeLock = null;
@@ -320,11 +473,73 @@ function update() {
   paintRoute();
   announce(nextI, next, dNext);
 
-  if (left.dist < 25 || (next.maneuver.type === 'arrive' && dNext < 20)) {
+  if (left.dist < 25 || (next.maneuver.type === 'arrive' && next.lastLeg !== false && dNext < 20)) {
     const name = r.destName;
     endNav();
     say(`Sei arrivato${name ? ' a ' + name : ''}. Buona giornata!`);
+    return;
   }
+  smart(left);
+}
+
+// tappe ancora da raggiungere (per i ricalcoli)
+function viaLeft() {
+  const r = st.route;
+  const passed = r.steps.filter((s, i) => s.maneuver.type === 'arrive' && s.lastLeg === false && r.stepAt[i] <= st.along + 30).length;
+  return r.via.slice(passed);
+}
+
+// ---------------- assistente proattivo ----------------
+function smart(left) {
+  const now = Date.now();
+  // 1. limite di velocità: lo aggiorno ogni 20 s o 300 m
+  const lc = st.limitCheck;
+  if (!st.sim && now - lc.at > 20000 && (!lc.pos || S.haversine(lc.pos, st.pos) > 300 || now - lc.at > 60000)) {
+    lc.at = now; lc.pos = st.pos;
+    S.speedLimit(st.pos).then((l) => { st.limit = l?.limit || null; showLimit(); }).catch(() => {});
+  }
+  const kmh = st.speed * 3.6;
+  if (st.limit && kmh > st.limit + 7) {
+    if (!st.overSince) st.overSince = now;
+    if (now - st.overSince > 6000 && now - st.warnedLimit > 90000) {
+      st.warnedLimit = now;
+      boby.say(`Attenzione, il limite è ${st.limit}.`);
+    }
+  } else st.overSince = 0;
+  $('speed').classList.toggle('over', !!(st.limit && kmh > st.limit + 3));
+
+  // 2. a circa un chilometro dall'arrivo propongo il parcheggio
+  const cat = S.matchCategory(st.route.destName.toLowerCase());
+  if (!st.parkingAsked && left.dist < 1200 && st.route.total > 3000 && !(cat && /Parcheggio/.test(cat.label))) {
+    st.parkingAsked = true;
+    const dest = st.route.dest, destName = st.route.destName;
+    st.pending = {
+      yes: async () => {
+        const items = await S.nearest(S.matchCategory('parcheggio'), dest, 800).catch(() => []);
+        if (!items.length) return say('Non trovo parcheggi vicino alla destinazione, proseguo.');
+        const p = items[0];
+        await startNav(p.coord, p.name, null);
+        st.parkingAsked = true;
+        say(`Ti porto ${/parchegg|parking|garage/i.test(p.name) ? 'a ' + p.name : 'al parcheggio ' + p.name}, a ${S.speakDist(S.haversine(p.coord, dest))} da ${destName}.`);
+      },
+      noText: 'Va bene, proseguo verso la destinazione.',
+    };
+    say('Siamo quasi arrivati. Vuoi che cerchi un parcheggio vicino alla destinazione?', { expectReply: true });
+    setTimeout(() => { if (st.pending) st.pending = null; }, 15000);
+  }
+
+  // 3. dopo due ore di guida suggerisco una pausa
+  if (st.driveStart && !st.breakWarned && now - st.driveStart > 2 * 3600 * 1000 && !st.sim) {
+    st.breakWarned = true;
+    st.pending = { yes: () => addStop('area di servizio').then((r) => say(r.say)), noText: 'Ok, ma ricordati di riposare.' };
+    say('Guidi da due ore. Vuoi che aggiunga una sosta per una pausa?', { expectReply: true });
+  }
+}
+
+function showLimit() {
+  const el = $('limit');
+  el.hidden = !st.limit;
+  if (st.limit) el.textContent = st.limit;
 }
 
 function announce(i, step, d) {
@@ -347,17 +562,18 @@ function announce(i, step, d) {
   }
 }
 
-async function reroute() {
+async function reroute(quiet = false) {
   st.rerouting = true;
-  ui.toast('Ricalcolo il percorso…');
+  if (!quiet) ui.toast('Ricalcolo il percorso…');
   try {
     const r = st.route;
-    const nr = await S.route(st.pos, r.dest);
-    st.route = prepareRoute(nr, r.dest, r.destName);
+    const via = viaLeft();
+    const nr = await S.route(st.pos, r.dest, { via: via.map((v) => v.coord), exclude: routeOpts() });
+    st.route = prepareRoute(nr, r.dest, r.destName, via);
     st.along = 0; st.stepIdx = 0; st.spoken = {}; st.offCount = 0;
-    map.getSource('route')?.setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: nr.coords }, properties: {} });
+    drawRoute(st.route);
     routeAnim.reveal = 0; revealRoute();
-    boby.say('Percorso ricalcolato.');
+    if (!quiet) boby.say('Percorso ricalcolato.');
   } catch (e) { ui.toast('Ricalcolo non riuscito, riprovo.'); }
   finally { setTimeout(() => (st.rerouting = false), 4000); }
 }
@@ -398,6 +614,7 @@ function setPosition(lngLat, heading, speed) {
   update();
   follow();
   if (Date.now() - lastPosTime > 30000) { store.set('lastPos', lngLat); lastPosTime = Date.now(); }
+  if (!st.sim && Date.now() - (st.addrAt || 0) > 120000) { st.addrAt = Date.now(); S.reverse(lngLat).then((a) => { if (a) st.address = a; }); }
 }
 
 function startGPS() {
@@ -445,7 +662,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 // ---------------- ricerca manuale ----------------
 let searchTimer = 0, searchSeq = 0;
-function openSheet() { $('sheet').hidden = false; $('q').value = ''; renderResults([]); setTimeout(() => $('q').focus(), 50); }
+function openSheet() { $('sheet').hidden = false; $('q').value = ''; renderResults(store.get('recent', []).map((r) => ({ ...r, where: 'Recente' }))); setTimeout(() => $('q').focus(), 50); }
 function closeSheet() { $('sheet').hidden = true; }
 function renderResults(items, msg) {
   const ul = $('results'); ul.innerHTML = '';
@@ -472,7 +689,7 @@ $('sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet') close
 $('q').addEventListener('input', (e) => {
   const q = e.target.value.trim();
   clearTimeout(searchTimer);
-  if (q.length < 3) return renderResults([]);
+  if (q.length < 3) return renderResults(q ? [] : store.get('recent', []).map((r) => ({ ...r, where: 'Recente' })));
   searchTimer = setTimeout(async () => {
     const seq = ++searchSeq;
     try { const r = await S.searchPlaces(q, st.pos); if (seq === searchSeq) renderResults(r, r.length ? null : 'Nessun risultato. Prova ad aggiungere la città.'); }
@@ -518,19 +735,62 @@ $('obStart').onclick = boot;
 $('btn3d').setAttribute('aria-pressed', 'true');
 $('btnCenter').setAttribute('aria-pressed', 'true');
 setMuted(store.get('muted', false));
+// Avvio a mani libere: se microfono e posizione sono già stati concessi, Boby ascolta subito.
+function unlockAudio() {
+  boby.unlockAudio();
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {}
+  $('tapWake').hidden = true;
+  if (voiceSupported && !boby.wantRunning) boby.start();
+}
+addEventListener('pointerdown', unlockAudio, { once: true, capture: true });
+$('tapWake').onclick = unlockAudio;
+boby.onBlocked = (text) => { $('tapWake').hidden = false; ui.bubble(text, 'boby', 8000); };
+
 if (store.get('onboarded')) {
-  // Il microfono richiede un gesto: il primo tocco ovunque riaccende Boby.
   $('onboard').hidden = true;
   startGPS();
-  ui.bubble('Tocca Boby per accenderlo.', 'boby', 0);
-  const wake = () => { boby.unlockAudio(); if (voiceSupported && !boby.wantRunning) boby.start(); $('bubble').hidden = true; };
-  addEventListener('pointerdown', wake, { once: true });
+  if (voiceSupported) {
+    boby.start(); // il riconoscimento parte da solo quando il permesso è già dato
+    setTimeout(() => {
+      if (boby.state === 'denied' || boby.state === 'off') { $('tapWake').hidden = false; $('tapWake').textContent = 'Tocca una volta per accendere Boby'; }
+      else if (!navigator.userActivation?.hasBeenActive) { $('tapWake').hidden = false; } // l'ascolto va, ma la voce del telefono richiede un tocco
+    }, 2500);
+  }
 }
+
+// ---------------- impostazioni ----------------
+function renderSettings() {
+  const k = store.get('claudeKey', '');
+  $('keyIn').value = k;
+  $('keyState').textContent = k ? 'Cervello attivo: Boby usa Claude.' : 'Cervello di base attivo.';
+  const o = store.get('opts', {});
+  $('optToll').checked = !!o.avoidTolls; $('optMoto').checked = !!o.avoidMotorways;
+  const ul = $('savedList'); ul.innerHTML = '';
+  const entries = [['home', store.get('home')], ['work', store.get('work')], ...Object.entries(store.get('places', {}))].filter(([, v]) => v);
+  if (!entries.length) ul.innerHTML = '<li class="empty">Nessun luogo salvato. Di\' «Hey Boby, imposta casa qui».</li>';
+  entries.forEach(([k2, v]) => {
+    const li = document.createElement('li');
+    li.textContent = k2 === 'home' ? 'Casa' : k2 === 'work' ? 'Lavoro' : k2[0].toUpperCase() + k2.slice(1);
+    const del = document.createElement('button'); del.textContent = 'Elimina';
+    del.onclick = () => {
+      if (k2 === 'home' || k2 === 'work') store.set(k2, null);
+      else { const pl = store.get('places', {}); delete pl[k2]; store.set('places', pl); }
+      renderSettings();
+    };
+    li.append(del); ul.append(li);
+  });
+}
+$('btnSettings').onclick = () => { renderSettings(); $('settings').hidden = false; };
+$('setClose').onclick = () => { $('settings').hidden = true; };
+$('settings').addEventListener('click', (e) => { if (e.target.id === 'settings') $('settings').hidden = true; });
+$('keyIn').addEventListener('change', (e) => { store.set('claudeKey', e.target.value.trim()); brain.reset(); renderSettings(); });
+const saveOpts = () => { store.set('opts', { avoidTolls: $('optToll').checked, avoidMotorways: $('optMoto').checked }); if (st.route) reroute(true); };
+$('optToll').onchange = saveOpts; $('optMoto').onchange = saveOpts;
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 // debug / test
-window.__boby = { handle, st, startSim, parseCommand };
+window.__boby = { handle, st, startSim, parseCommand, brain, addStop, store, update };
 
 // ---------------- icone manovra ----------------
 const ICONS = {

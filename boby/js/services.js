@@ -72,13 +72,56 @@ export async function nearest(cat, near, radius = 6000) {
   return items;
 }
 
-export async function route(from, to) {
-  const url = `${OSRM}${from[0]},${from[1]};${to[0]},${to[1]}?overview=full&geometries=geojson&steps=true&alternatives=false`;
-  const j = await getJSON(url, {}, 15000);
+export async function route(from, to, { via = [], exclude = [] } = {}) {
+  const pts = [from, ...via, to].map((c) => `${c[0]},${c[1]}`).join(';');
+  const base = `${OSRM}${pts}?overview=full&geometries=geojson&steps=true&alternatives=false`;
+  let j;
+  try {
+    j = await getJSON(base + (exclude.length ? `&exclude=${exclude.join(',')}` : ''), {}, 15000);
+  } catch (e) {
+    if (!exclude.length) throw e;
+    j = await getJSON(base, {}, 15000); // il server non accetta l'esclusione: percorso normale
+  }
   if (j.code !== 'Ok' || !j.routes?.length) throw new Error('Nessun percorso trovato');
   const r = j.routes[0];
-  const steps = r.legs.flatMap((l) => l.steps);
+  const steps = r.legs.flatMap((l, li) => l.steps.map((s) => ({ ...s, legIndex: li, lastLeg: li === r.legs.length - 1 })));
   return { coords: r.geometry.coordinates, distance: r.distance, duration: r.duration, steps };
+}
+
+// Meteo (Open-Meteo, senza chiave)
+const WMO = { 0: 'sereno', 1: 'quasi sereno', 2: 'poco nuvoloso', 3: 'nuvoloso', 45: 'nebbia', 48: 'nebbia', 51: 'pioviggine', 53: 'pioviggine', 55: 'pioviggine fitta',
+  61: 'pioggia leggera', 63: 'pioggia', 65: 'pioggia forte', 66: 'pioggia gelata', 67: 'pioggia gelata', 71: 'neve leggera', 73: 'neve', 75: 'neve forte', 77: 'nevischio',
+  80: 'rovesci', 81: 'rovesci', 82: 'rovesci forti', 85: 'neve a tratti', 86: 'neve a tratti', 95: 'temporale', 96: 'temporale con grandine', 99: 'temporale con grandine' };
+export async function weather(c) {
+  const u = `https://api.open-meteo.com/v1/forecast?latitude=${c[1].toFixed(3)}&longitude=${c[0].toFixed(3)}&current=temperature_2m,weather_code,precipitation,wind_speed_10m&timezone=auto`;
+  const j = await getJSON(u, {}, 8000);
+  const cur = j.current || {};
+  const code = cur.weather_code;
+  return { temp: Math.round(cur.temperature_2m), desc: WMO[code] || 'variabile', wet: code >= 51 && code !== 45 && code !== 48, wind: Math.round(cur.wind_speed_10m || 0) };
+}
+
+// Limite di velocità della strada attuale (OpenStreetMap)
+const ZONE = { 'it:urban': 50, 'it:rural': 90, 'it:trunk': 110, 'it:motorway': 130, 'it:living_street': 10, walk: 10 };
+export async function speedLimit(c) {
+  const q = `[out:json][timeout:8];way(around:18,${c[1]},${c[0]})[highway][maxspeed];out tags 3;`;
+  const j = await getJSON(OVERPASS, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }, 9000);
+  for (const e of j.elements || []) {
+    const v = String(e.tags.maxspeed).toLowerCase().trim();
+    const n = parseInt(v, 10);
+    if (Number.isFinite(n)) return { limit: /mph/.test(v) ? Math.round(n * 1.609) : n, road: e.tags.name || e.tags.ref || '' };
+    if (ZONE[v]) return { limit: ZONE[v], road: e.tags.name || '' };
+  }
+  return null;
+}
+
+// Indirizzo della posizione attuale
+export async function reverse(c) {
+  try {
+    const j = await getJSON(`https://photon.komoot.io/reverse?lat=${c[1]}&lon=${c[0]}`, {}, 6000);
+    const p = j.features?.[0]?.properties;
+    if (!p) return '';
+    return [p.street || p.name, p.city || p.town || p.village].filter(Boolean).join(', ');
+  } catch (e) { return ''; }
 }
 
 // ---------- geometria ----------
@@ -108,7 +151,7 @@ export function instruction(step) {
   const road = step.name ? ` su ${step.name}` : (step.ref ? ` su ${step.ref}` : '');
   switch (m.type) {
     case 'depart': return `Parti${road || ''}`;
-    case 'arrive': return 'Sei arrivato a destinazione';
+    case 'arrive': return step.lastLeg === false ? 'Sei arrivato alla tappa' : 'Sei arrivato a destinazione';
     case 'roundabout': case 'rotary': case 'roundabout turn':
       return m.exit ? `Alla rotonda prendi la ${ORD[m.exit] || m.exit + 'ª'} uscita${road}` : `Entra nella rotonda${road}`;
     case 'exit roundabout': case 'exit rotary': return `Esci dalla rotonda${road}`;
