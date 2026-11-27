@@ -1,7 +1,7 @@
 // Service worker di Boby: app installabile e utilizzabile anche con rete scarsa.
 const V = 'boby-v1';
 const SHELL = ['./', 'index.html', 'css/app.css', 'js/app.js', 'js/style.js', 'js/services.js', 'js/voice.js',
-  'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
+  'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
 const TILES = 'boby-tiles-v1';
 
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
