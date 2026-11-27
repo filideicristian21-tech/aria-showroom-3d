@@ -76,7 +76,7 @@ body.navigating .boby-wrap { bottom: calc(var(--sa-b) + 104px); }
 @keyframes pop { from { transform: scale(.85) translateY(10px); opacity: 0; } }
 
 .orb { position: relative; width: 84px; height: 84px; border: 0; padding: 0; background: none; border-radius: 50%; }
-body.navigating .bubble { font-size: 16px; padding: 10px 14px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+body.navigating .bubble { font-size: 16px; padding: 10px 14px; max-height: 6.2em; overflow: hidden; }
 body.navigating .orb { width: 70px; height: 70px; }
 .core { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
   background: radial-gradient(circle at 35% 30%, #CFFBFF 0%, var(--cyan) 22%, #3B5BFF 58%, #1A1E6E 100%);
